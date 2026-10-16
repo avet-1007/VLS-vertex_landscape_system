@@ -39,7 +39,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
+/* ===== TOP BAR ===== */
 #topbar {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
@@ -99,6 +99,12 @@ body {
 .tool.primary:hover { background: var(--accent-hover); }
 .tool svg { width: 20px; height: 20px; display: block; color: var(--accent); }
 .tool.active svg, .tool.primary svg { color: #fff; }
+
+/* Texture mode: the whole vertex-editing part of the toolbar steps aside.
+   Only Select, settings and load/export stay — texturing is not geometry editing. */
+body.texmode .toolgrp.geo { display: none; }
+body.texmode .toolgrp.geo + .toolgrp { border-left: none; padding-left: 0; }
+body.texmode #hud { display: none; }
 .tsel {
   background: var(--panel2);
   border: 1px solid var(--border);
@@ -115,7 +121,37 @@ body {
   font-weight: 700;
 }
 .tsel.tnum { max-width: 48px; font-family: var(--font-mono); }
-/* кнопки-степперы номера кода существа */
+/* creature category in the toolbar: a square button with the letter and an arrow, click - A/B/C list */
+.letsel { position: relative; display: inline-flex; }
+.letbtn {
+  width: 38px; height: 38px; padding: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--accent); font-family: inherit; font-size: 15px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+}
+.letbtn:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
+.letbtn.open { border-color: var(--accent); }
+.letbtn .caret {
+  width: 0; height: 0; margin-top: 4px;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid currentColor; opacity: .8;
+}
+.letmenu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  display: flex; flex-direction: column; gap: 2px; padding: 4px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.45);
+}
+.letmenu[hidden] { display: none; }
+.letopt {
+  width: 30px; height: 30px; padding: 0;
+  background: transparent; border: 1px solid transparent; border-radius: 6px;
+  color: var(--text); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.letopt:hover { background: var(--item-hover); border-color: var(--border); }
+.letopt.on { color: var(--accent); border-color: var(--accent); }
+/* stepper buttons for the creature code number */
 .spinbtns { display: inline-flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
 .spinbtn {
   width: 20px; height: 13px; line-height: 1; padding: 0;
@@ -145,7 +181,7 @@ body {
 
 .main { display: flex; flex: 1; min-height: 0; }
 
-/* ===== ЛЕВАЯ ПАНЕЛЬ ===== */
+/* ===== LEFT PANEL ===== */
 #sidebar {
   width: 300px;
   background: var(--panel);
@@ -153,6 +189,21 @@ body {
   overflow-y: auto;
   flex-shrink: 0;
 }
+/* two departments: geometry editing / geometry texturing */
+.tabs {
+  display: flex; gap: 4px; padding: 8px;
+  position: sticky; top: 0; z-index: 3;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 1; background: var(--panel2); border: 1px solid var(--border); color: var(--muted);
+  padding: 7px 6px; border-radius: 6px; cursor: pointer; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.04em; text-align: center;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.tab:hover { background: var(--item-hover); border-color: rgba(255,255,255,0.2); color: var(--text); }
+.tab.active { background: var(--item-selected); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.panel[hidden] { display: none; }
 .section { padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); }
 .section h3 {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
@@ -180,7 +231,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 .btn.danger:hover { background: var(--danger-hover); color: var(--danger); }
 .muted { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
-/* переключатель Stone */
+/* Stone toggle */
 .sw { display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px; }
 .sw input { display: none; }
 .swsl {
@@ -197,19 +248,11 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 .swlabel { font-size: 13px; font-weight: 600; display: flex; flex-direction: column; }
 .swlabel small { font-size: 10px; color: var(--muted); font-weight: 400; }
 
-/* карточки текстур */
-.texrow { display: flex; gap: 8px; }
-.texcard {
-  flex: 1; background: var(--panel2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 8px;
-}
-.texprev {
-  width: 100%; aspect-ratio: 1 / 1; height: auto; image-rendering: pixelated;
-  border: 1px solid #000; border-radius: 4px; background: #000;
-}
-.texcap { font-size: 10px; color: var(--muted); margin: 6px 0 4px; text-align: center; }
+/* texture tools (mounted by js/Atlas/*.js) */
+#texTools { margin-top: 8px; }
+.textool { margin-top: 8px; }
 
-/* режимы соединения */
+/* connection modes */
 .modes { display: flex; gap: 4px; margin-bottom: 8px; }
 .mode {
   background: var(--panel2); border: 1px solid var(--border); color: var(--text);
@@ -219,14 +262,14 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 .mode:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
 .mode.active { background: var(--item-selected); border-color: var(--accent); color: var(--accent); font-weight: 500; }
 
-/* панель существ */
+/* creature panel */
 .thingpanel {
   border: 1px dashed var(--border); border-radius: 8px; padding: 8px;
   margin-bottom: 8px; background: rgba(34,37,45,.5);
 }
 .thingpanel.on { border-style: solid; border-color: var(--accent); background: var(--panel2); }
 
-/* лифт */
+/* lift */
 .liftfloor {
   display: flex; align-items: center; justify-content: space-between;
   padding: 5px 8px; margin-bottom: 4px; border: 1px solid var(--border);
@@ -245,7 +288,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 .liftfloor.act .lb { color: var(--danger); }
 .liftbtns { margin-top: 6px; }
 
-/* кривая лифта */
+/* lift curve */
 .curvebox { position: relative; margin-bottom: 8px; }
 #curveCanvas {
   width: 100%; height: 120px; background: var(--bg);
@@ -255,7 +298,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 .c1 { position: absolute; top: 4px; right: 6px; font-size: 10px; color: var(--muted); }
 .cs { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--accent); }
 
-/* ===== ВЬЮПОРТ ===== */
+/* ===== VIEWPORT ===== */
 #viewport { position: relative; flex: 1; background: #0d0d11; min-width: 0; }
 #canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
 #warnings {
@@ -298,6 +341,27 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
   opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 100; box-shadow: var(--shadow-md);
 }
 #toast.show { opacity: 1; }
+#settingsPop {
+  position: fixed; z-index: 210; top: 54px; right: 14px;
+  background: rgba(24, 24, 27, 0.95); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 14px; min-width: 260px; max-width: 320px;
+  max-height: calc(100vh - 74px); overflow-y: auto;
+  box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+}
+#settingsPop[hidden] { display: none; }
+#settingsPop .sp-title { color: var(--accent); font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+#settingsPop .sp-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+#settingsPop .sp-row label { font-size: 12px; }
+#settingsPop select, #settingsPop input {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 4px 8px; border-radius: 6px; font-size: 12px;
+}
+#settingsPop .muted { font-size: 11px; }
+#settingsPop .btn { padding: 5px 12px; font-size: 12px; }
+#kbRows { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+#settingsPop .kbbind { min-width: 108px; font-family: var(--font-mono); font-size: 11px; }
+#settingsPop .kbbind.listening { border-color: var(--accent); color: var(--accent); animation: kbPulse 1s infinite alternate; }
+@keyframes kbPulse { from { opacity: 1; } to { opacity: .55; } }
 #buildLabel {
   position: fixed; right: 8px; bottom: 6px;
   font-family: var(--font-mono); font-size: 10px;
@@ -327,7 +391,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 #ctm .row label { font-size: 11px; }
 #ctm .curvebox { position: relative; background: var(--bg); border: 1px solid var(--border-subtle); border-radius: 6px; }
 
-/* частичная стилистика info-data: скроллбары */
+/* partial styling of info-data: scrollbars */
 ::-webkit-scrollbar { width: 14px; height: 14px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -337,3 +401,135 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.25); }
+
+/* ===== RTL (Arabic) ===== */
+html[dir="rtl"] #coord,
+html[dir="rtl"] #buildLabel,
+html[dir="rtl"] #hud,
+html[dir="rtl"] .loglist,
+html[dir="rtl"] .tnum,
+html[dir="rtl"] input[type="number"] { direction: ltr; text-align: left; }
+html[dir="rtl"] #warnings { text-align: right; }
+
+/* ===== Textures: canvas region selector, layer stack, world list ===== */
+#panelTextures .section[hidden] { display: none; }
+
+.texatlas {
+  position: relative; display: block; width: 100%; height: 240px;
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--panel2); cursor: crosshair; user-select: none;
+  touch-action: none;
+}
+.texatlas.panning { cursor: grabbing; }
+.texatlasin {
+  position: absolute; left: 0; top: 0; width: 100%;
+  transform-origin: 0 0;
+}
+.texatlasin img {
+  display: block; width: 100%; height: auto; pointer-events: none;
+  image-rendering: auto;
+}
+.texatlasin img.pixelated { image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; }
+/* the rectangle sits OUTSIDE the transformed canvas layer: whole pixels, hard edges */
+.texrect {
+  position: absolute; box-sizing: border-box;
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.75);
+  background: rgba(76,125,217,0.12);
+  pointer-events: none;
+}
+.texhandles { position: absolute; inset: 0; pointer-events: none; }
+.texhandles i {
+  position: absolute; width: 9px; height: 9px;
+  transform: translate(-50%, -50%);
+  background: #ffffff; border: 1px solid #000000; border-radius: 2px;
+  pointer-events: auto; cursor: move;
+}
+.texhandles i[data-d="n"], .texhandles i[data-d="s"] { cursor: ns-resize; }
+.texhandles i[data-d="e"], .texhandles i[data-d="w"] { cursor: ew-resize; }
+.texhandles i[data-d="nw"], .texhandles i[data-d="se"] { cursor: nwse-resize; }
+.texhandles i[data-d="ne"], .texhandles i[data-d="sw"] { cursor: nesw-resize; }
+.texviewbar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.texviewbar .btn { width: auto; flex: 0 0 auto; padding: 4px 9px; font-size: 11px; }
+#texViewZoom { margin-left: auto; color: var(--dim); font-size: 11px; }
+#texRegionSize { margin-top: 3px; color: var(--dim); }
+
+/* ===== Alt-Tab: the canvas takes the main window, a still map picture stays in the sidebar ===== */
+#texSwapBox {
+  position: absolute; inset: 0; z-index: 5;
+  background: #0d0d11; padding: 10px; box-sizing: border-box;
+  display: flex; flex-direction: column; min-height: 0;
+}
+/* the id rule above beats the browser's [hidden] rule — say it again, or the empty
+   box sits on the map for good and eats every click without an error */
+#texSwapBox[hidden] { display: none; }
+#texSwapBox #texCanvasBlock {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  border: none; padding: 0; background: transparent; overflow: visible;
+}
+#texSwapBox #texCanvasBlock .texatlas { flex: 1; height: auto; min-height: 120px; }
+#texSwapBox #texCanvasBlock .texregionhint { max-width: 760px; }
+#texMapSnapImg {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #0d0d11; cursor: pointer;
+}
+/* the panel only holds a PICTURE of the canvas — clicking it opens the real thing on the right */
+#texAtlasSnapImg {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #0d0d11; cursor: pointer;
+  image-rendering: pixelated;
+}
+/* in the main window the canvas is just work space: no heading, no buttons, no paragraphs */
+#texSwapBox #texCanvasBlock h3,
+#texSwapBox #texCanvasBlock .texviewbar,
+#texSwapBox #texCanvasBlock > .muted { display: none; }
+
+.texbtns { display: flex; gap: 6px; margin-top: 8px; }
+.texbtns .btn { width: auto; flex: 1; text-align: center; padding: 6px 4px; font-size: 11px; }
+.texbtns .btn.off { opacity: 0.4; cursor: default; }
+.texbtns .btn.off:hover { background: var(--panel2); border-color: var(--border); }
+.btn.texnew { margin-top: 8px; }
+
+.texlayers { display: flex; flex-direction: column; gap: 4px; }
+.texlayer {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 7px; cursor: pointer;
+  font-size: 12px; color: var(--text);
+  transition: border-color .12s, background .12s;
+}
+.texlayer:hover { background: var(--item-hover); border-color: rgba(255,255,255,0.2); }
+.texlayer.active { border-color: var(--accent); background: var(--item-selected); }
+/* the layer row carries a small copy of the sprite that lives on it (image-editor style) */
+#texLayers .texlayersw { width: 26px; height: 26px; image-rendering: pixelated; }
+.texlayvis {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 13px; line-height: 1; padding: 0 2px;
+}
+.texlayvis:hover { color: var(--text); }
+.texlayersw {
+  width: 18px; height: 18px; border-radius: 4px; flex: 0 0 auto;
+  border: 1px solid var(--border);
+}
+.texlayname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.texlaycount { color: var(--dim); font-size: 11px; }
+.texlaydel {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 12px; line-height: 1; padding: 0 2px;
+}
+.texlaydel:hover { color: var(--danger); }
+/* raise / lower the layer one step; the edge rows carry a dead arrow */
+.texlaymove {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 11px; line-height: 1; padding: 0 1px;
+}
+.texlaymove:hover:not(:disabled) { color: var(--text); }
+.texlaymove:disabled { opacity: .3; cursor: default; }
+
+.texopt {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--text); padding: 4px 0; cursor: pointer;
+}
+.texopt input { accent-color: var(--accent); width: 13px; height: 13px; }
