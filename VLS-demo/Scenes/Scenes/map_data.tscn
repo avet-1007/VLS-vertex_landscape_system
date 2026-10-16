@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://bevw2kl4yxww3"]
-
-[ext_resource type="Script" uid="uid://b1oyynnebwg8y" path="res://Scenes/Scripts/map_data.gd" id="1"]
-
-[node name="map-data" type="Node2D" unique_id=401601115]
-script = ExtResource("1")
