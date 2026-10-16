@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLS — Vertex Landscape System Editor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="topbar">
+  <span class="logo-badge" title="VLS — Vertex Landscape System">!I</span>
+  <button class="tool" id="btnWiki" data-i18n-title="wiki">VLS Wiki</button>
+  <div id="toolbar">
+    <div class="toolgrp geo">
+      <button class="tool" data-tool="point" data-i18n-label="tl_point"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/></svg></button>
+      <button class="tool" data-tool="line" data-i18n-label="tl_line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 18L18 6"/></svg></button>
+      <button class="tool" data-tool="sector" data-i18n-label="tl_sector"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5v8l-9 5-9-5V8z"/></svg></button>
+    </div>
+    <div class="toolgrp">
+      <button class="tool" data-tool="select" data-i18n-label="tl_select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/></svg></button>
+    </div>
+    <div class="toolgrp geo">
+      <button class="tool" data-tool="box" data-i18n-label="tl_box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/></svg></button>
+      <button class="tool" data-tool="boxsmooth" data-i18n-label="tl_boxsmooth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l4 4v8l-4 4H8l-4-4V8z"/></svg></button>
+    </div>
+    <div class="toolgrp geo">
+      <button class="tool" data-tool="connect" data-i18n-label="tl_connect"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></button>
+      <select id="toolConnectSel" class="tsel" data-i18n-title="connect_sel_tt">
+        <option value="free" data-i18n="connect_free">Free</option>
+        <option value="joint" selected data-i18n="connect_joint">Join</option>
+        <option value="step" data-i18n="connect_step">Lift joint</option>
+      </select>
+      <button class="tool" data-tool="lift" data-i18n-label="tl_lift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 16V8m0 0l-3.5 3.5M12 8l3.5 3.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="toolgrp geo">
+      <button class="tool" data-tool="thing" data-i18n-label="tl_thing"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l6 10-6 10-6-10z"/></svg></button>
+      <span class="letsel"><button type="button" class="letbtn" id="toolThingCatBtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="thing_cat_tt"><span class="ltr">A</span><i class="caret"></i></button><span class="letmenu" id="toolThingCatMenu" hidden><button type="button" class="letopt on" data-letter="A" data-i18n-title="thing_cat_a_tt">A</button><button type="button" class="letopt" data-letter="B" data-i18n-title="thing_cat_b_tt">B</button><button type="button" class="letopt" data-letter="C" data-i18n-title="thing_cat_c_tt">C</button></span></span><input type="hidden" id="toolThingCat" value="A">
+      <input type="text" id="toolThingNum" class="tsel tnum" maxlength="3" inputmode="numeric" data-i18n-title="thing_num_tt">
+      <span class="spinbtns"><button class="spinbtn" id="toolThingNumUp" data-i18n-title="thing_num_up_tt">▲</button><button class="spinbtn" id="toolThingNumDown" data-i18n-title="thing_num_down_tt">▼</button></span>
+      <button class="tool" data-tool="trigger" data-i18n-label="tl_trigger"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3l3.5 3.5L6 10 2.5 6.5z"/><path d="M18 14l3.5 3.5L18 21l-3.5-3.5z"/></svg></button>
+    </div>
+    <div class="toolgrp">
+      <button class="tool" data-action="settings" data-i18n-label="tl_settings"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.29L5.24 5.33c-.22-.08-.47 0-.59.22L2.74 8.87C2.62 9.08 2.66 9.34 2.86 9.48l2.03 1.58C4.84 11.36 4.8 11.69 4.8 12s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61L19.14 12.94zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+      <button class="tool dead" data-tool="texpick" data-i18n-label="tl_texpick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/></svg></button>
+    </div>
+    <div class="toolgrp">
+      <button class="tool" data-action="loadmap" data-i18n-label="tl_loadmap"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></button>
+      <button class="tool primary" data-action="exportmap" data-i18n-label="tl_exportmap"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zM12 19c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zM11 10H7V5h4v5zM15 13h2v5h-2v-5zM13 10.5L17 5l4 5.5h-3v4h-2v-4h-3z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="sidebar">
+    <div class="tabs" id="sidebarTabs">
+      <button type="button" class="tab active" data-panel="panelGeometry" data-i18n="tab_geom">Geometry</button>
+      <button type="button" class="tab" data-panel="panelTextures" data-i18n="sect_tex">Textures</button>
+    </div>
+
+    <div class="panel" id="panelGeometry">
+    <div class="section">
+      <h3 data-i18n="sect_connect">Connection</h3>
+      <div class="modes" id="connectModes">
+        <button class="mode" data-mode="free" data-i18n="mode_free">Free<br>pass</button>
+        <button class="mode active" data-mode="joint" data-i18n="mode_joint">Join</button>
+        <button class="mode" data-mode="step" data-i18n="mode_step">Step</button>
+      </div>
+      <div class="muted" id="connectHelp" data-i18n="connect_help">Join: two sectors must stand flush, their walls one above the other. Click the wall of the first, then the wall of the second (the wall itself highlights green ✔ — clickable). Red ✗ = lines do not overlap.</div>
+    </div>
+
+    <div class="section">
+      <h3 data-i18n="sect_creatures">Creatures</h3>
+      <div class="thingpanel" id="thingPanel">
+        <div class="muted" id="thingEmpty" data-i18n="thing_empty">Click a diamond on the map</div>
+        <div class="thingfields" id="thingFields" style="display:none">
+          <div class="row"><label data-i18n="lbl_code">Code</label><select id="thingLetter" class="codeletter" data-i18n-title="thing_letter_tt"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select><input type="text" id="thingNum" value="" maxlength="8" inputmode="numeric" data-i18n-title="thing_num_tt"><span class="spinbtns"><button class="spinbtn" id="thingNumUp" data-i18n-title="thing_num_up_tt">▲</button><button class="spinbtn" id="thingNumDown" data-i18n-title="thing_num_down_tt">▼</button></span></div>
+          <div class="row"><label data-i18n="lbl_name">Name</label><input type="text" id="thingName" value="" maxlength="24" data-i18n-title="thing_name_panel_tt"></div>
+          <div id="thingCorrupt" style="display:none;margin-top:6px;padding:6px 8px;border:1px solid var(--danger);border-radius:6px;font-size:11px;color:var(--danger)"><span data-i18n="thing_reset_title">⚠ Creature data is damaged</span> <b id="thingCorruptId"></b> <button class="btn danger" id="thingFixBtn" style="margin-top:6px;padding:4px 8px"><span data-i18n="thing_reset_btn">✕ Re-issue</span></button></div>
+        </div>
+      </div>
+      <div class="btn" id="btnPlaceThing" data-i18n="btn_place_thing">Place at the selected point</div>
+      <div style="height:6px"></div>
+      <div class="btn danger" id="btnClearThings" data-i18n="btn_clear_things">Clear all creatures</div>
+    </div>
+
+    <div class="section">
+      <h3 data-i18n="sect_triggers">Triggers</h3>
+      <div class="row"><label data-i18n="lbl_id">ID</label><input type="text" id="triggerID" value="trigger_01"></div>
+      <div class="row"><label data-i18n="lbl_kind">Kind</label><select id="triggerType"><option value="inner" data-i18n="opt_inner">inner</option></select></div>
+      <div class="row"><label data-i18n="lbl_ticks">Ticks</label><input type="number" id="triggerTicks" value="5" min="1"></div>
+      <div class="muted" data-i18n="trigger_help">The Trigger tool (diamonds in the toolbar): hold LMB and stretch a rectangle. The two diamonds = corners. In Select mode a diamond moves a corner, the rectangle itself moves whole.</div>
+    </div>
+
+    <div class="section">
+      <h3 data-i18n="sect_lift">Lift curve</h3>
+      <div class="curvebox">
+        <span class="c0">0</span><span class="c1">1</span><span class="cs" data-i18n="opt_sin">Sin (sine)</span>
+        <canvas id="curveCanvas" width="200" height="120"></canvas>
+      </div>
+      <div class="row"><label data-i18n="lbl_curve">Curve</label>
+        <select id="curveType">
+          <option value="sin" data-i18n="opt_sin">Sin (sine)</option>
+          <option value="lin" data-i18n="opt_lin">Linear</option>
+          <option value="cus" data-i18n="opt_cus">Custom</option>
+        </select>
+      </div>
+      <div class="row"><label data-i18n="lbl_sec">Sec</label><input type="number" id="liftSec" value="3" min="0.1" step="0.1"></div>
+      <div id="liftFloorList" style="margin-top:8px"></div>
+      <div class="muted" data-i18n="lift_help">The Lift tool: click a sector to create the floor phantom, arrows move the phantom to the arrival spot</div>
+    </div>
+
+    <div class="section">
+      <h3 data-i18n="sect_map">Map</h3>
+      <div class="row"><label data-i18n="lbl_mapname">Name</label><input type="text" id="mapName" value="map01"></div>
+      <div class="muted" data-i18n="map_help">Load/export — top right</div>
+    </div>
+
+    <div class="section">
+      <h3 data-i18n="sect_log">Log</h3>
+      <div class="loglist" id="logList"><div class="muted" data-i18n="log_empty">The action list appears here (also mirrored to the F12 console)</div></div>
+      <div style="height:6px"></div>
+      <div class="btn" id="btnClearLog" data-i18n="btn_clear_log">Clear log</div>
+    </div>
+    </div><!-- /#panelGeometry -->
+
+    <div class="panel" id="panelTextures" hidden>
+      <div class="section">
+        <div class="muted" id="texEmpty" data-i18n="tex_empty">No texturing tools yet.</div>
+        <div id="texTools"></div>
+      </div>
+
+      <div class="section" id="texAtlasSnap">
+        <h3 data-i18n="tex_canvas">Canvas</h3>
+        <canvas id="texAtlasSnapImg" width="720" height="480"></canvas>
+        <div class="muted" style="margin-top:4px" data-i18n="tex_swap_hint">Click the canvas to move it to the main window and see the map in its place. Click the map picture to swap back.</div>
+      </div>
+
+      <div class="section" id="texCanvasBlock" hidden>
+        <h3 data-i18n="tex_canvas">Canvas</h3>
+        <div class="texatlas" id="texAtlas">
+          <div class="texatlasin" id="texAtlasIn">
+            <img id="texAtlasImg" src="textures/t-map.png" alt="">
+          </div>
+          <div class="texrect" id="texAtlasRect"></div>
+          <div class="texhandles" id="texHandles">
+            <i data-d="nw"></i><i data-d="n"></i><i data-d="ne"></i><i data-d="e"></i><i data-d="se"></i><i data-d="s"></i><i data-d="sw"></i><i data-d="w"></i>
+          </div>
+        </div>
+        <div class="texviewbar">
+          <div class="btn" id="btnTexViewReset" data-i18n="tex_view_reset">Reset view</div>
+          <span class="muted" id="texViewZoom">100%</span>
+        </div>
+        <div class="muted" style="margin-top:4px" data-i18n="tex_view_hint">Wheel — zoom, middle or right button — move the canvas.</div>
+        <div class="muted" style="margin-top:4px" data-i18n="tex_swap_hint">Click the canvas to move it to the main window and see the map in its place. Click the map picture to swap back.</div>
+        <div class="muted" style="margin-top:4px" data-i18n="tex_region_hint">Drag a rectangle over the canvas to take a group of pixels. Drag inside it to move it, drag a handle to resize it.</div>
+        <div class="muted" id="texRegionSize"></div>
+      </div>
+
+      <div class="section" id="texMapSnap" hidden>
+        <h3 data-i18n="tex_map">Map</h3>
+        <canvas id="texMapSnapImg" width="720" height="480"></canvas>
+        <div class="muted" style="margin-top:4px" data-i18n="tex_swap_hint2">Click the picture to bring the canvas back.</div>
+      </div>
+
+      <div class="section" id="texSectorBlock" hidden>
+        <h3 data-i18n="tex_sector">Sector texture</h3>
+        <div class="texbtns">
+          <div class="btn" id="btnTexDel" data-i18n="tex_del_sel">Delete</div>
+        </div>
+        <div class="muted" style="margin-top:6px" data-i18n="tex_place_hint">Middle-click a sector to make it the current one; click inside it with the left button to drop the brush there — every click starts a new layer with one sprite. Middle-click empty ground to close the sector. Click a placed sprite to select it, Shift — several layers.</div>
+
+        <h3 style="margin-top:12px" data-i18n="tex_layers">Layers</h3>
+        <div class="texlayers" id="texLayers"></div>
+      </div>
+
+      <div class="section" id="texWorldBlock" hidden>
+        <h3 data-i18n="tex_world">World layers</h3>
+        <div class="muted" data-i18n="tex_world_help">Drag in the void to lay a rectangle tiled with the current canvas selection. Click a rectangle to select it, then drag it or its edge. It belongs to the world, not to any sector.</div>
+        <div class="texbtns">
+          <div class="btn" id="btnTexWorldDel" data-i18n="tex_del_sel">Delete</div>
+        </div>
+        <div class="texlayers" id="texWorldList" style="margin-top:8px"></div>
+      </div>
+
+      <div class="section" id="texOpts">
+        <h3 data-i18n="tex_show">Show</h3>
+        <label class="texopt"><input type="checkbox" id="optShowSectors" checked><span data-i18n="tex_show_sectors">Sectors</span></label>
+        <label class="texopt"><input type="checkbox" id="optShowWalls" checked><span data-i18n="tex_show_walls">Walls</span></label>
+        <label class="texopt"><input type="checkbox" id="optShowWorld" checked><span data-i18n="tex_show_world">World rectangles</span></label>
+        <label class="texopt"><input type="checkbox" id="optDimUnsel"><span data-i18n="tex_dim_unsel">Unselected layers half-transparent</span></label>
+      </div>
+    </div><!-- /#panelTextures -->
+  </div>
+
+  <div id="viewport">
+    <div id="warnings"></div>
+    <canvas id="canvas"></canvas>
+    <div id="texSwapBox" hidden></div>
+    <div class="vbtns">
+      <div class="tb" id="btnResetView" data-i18n="btn_reset_view">Reset view</div>
+      <div class="tb" id="btnChecks" data-i18n="btn_checks">Checks</div>
+    </div>
+    <div id="coord">x: <span id="cx">--</span> &nbsp; y: <span id="cy">--</span> &nbsp; cell: <span id="cu">--</span></div>
+    <div id="hud"></div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".vls,text/plain" style="display:none">
+<div id="toast"></div>
+<div id="buildLabel">V-0.1.18</div>
+
+<!-- Settings -->
+<div id="settingsPop" hidden>
+  <div class="sp-title" data-i18n="settings_title">Settings</div>
+  <div class="sp-row"><label data-i18n="settings_lang">Language</label>
+    <select id="langSel">
+      <option value="en" data-i18n="lang_en">English</option>
+      <option value="ru" data-i18n="lang_ru">Русский</option>
+      <option value="hy" data-i18n="lang_hy">Հայերեն</option>
+      <option value="zh" data-i18n="lang_zh">中文</option>
+      <option value="ar" data-i18n="lang_ar">العربية</option>
+    </select>
+  </div>
+  <div class="muted" style="margin-top:6px" data-i18n="settings_help">Interface language (English by default). Saved in the browser.</div>
+  <div class="sp-title" style="margin-top:12px" data-i18n="settings_hotkeys">Hotkeys</div>
+  <div id="kbRows"></div>
+  <div class="muted" style="margin-top:6px" data-i18n="settings_hotkeys_help">Click a hotkey, then press the new combination. Saved in the browser.</div>
+  <div class="sp-row" style="margin-top:8px">
+    <button class="btn" id="kbReset" data-i18n="kb_reset">Reset defaults</button>
+  </div>
+  <div class="sp-row" style="margin-top:10px;justify-content:flex-end">
+    <button class="btn" id="settingsClose" data-i18n="close">Close</button>
+  </div>
+</div>
+
+<!-- Context menu (RMB - object properties) -->
+<div id="ctm">
+  <div class="ctmtitle" id="ctmTitle" data-i18n="ctm_title">Properties</div>
+  <div class="ctmbody" id="ctmBody"></div>
+  <div class="ctmbtns">
+    <button class="btn danger" id="ctmDelete" data-i18n="ctm_delete">Delete</button>
+    <button class="btn" id="ctmClose" data-i18n="ctm_close">Close</button>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/core.js"></script>
+<script src="js/keybinds.js"></script>
+<script src="js/tools.js"></script>
+<script src="js/history.js"></script>
+<script src="js/clipboard.js"></script>
+<script src="js/geometry.js"></script>
+<script src="js/things.js"></script>
+<script src="js/select.js"></script>
+  <script src="js/Atlas/state.js"></script>
+  <script src="js/Atlas/canvas.js"></script>
+  <script src="js/Atlas/swap.js"></script>
+  <script src="js/Atlas/drag.js"></script>
+  <script src="js/Atlas/panel.js"></script>
+  <script src="js/Atlas/stamp.js"></script>
+  <script src="js/Atlas/actions.js"></script>
+  <script src="js/Atlas/misc.js"></script>
+<script src="js/lifts.js"></script>
+<script src="js/lift-bind.js"></script>
+<script src="js/checks.js"></script>
+<script src="js/render.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

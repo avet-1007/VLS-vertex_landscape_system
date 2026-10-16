@@ -1,0 +1,535 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #09090b;
+  --panel: #131316;
+  --panel2: #18181b;
+  --elevated: #27272a;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(107, 123, 208, 0.5);
+  --item-hover: rgba(255, 255, 255, 0.06);
+  --item-active: rgba(255, 255, 255, 0.1);
+  --item-selected: rgba(107, 123, 208, 0.12);
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --dim: #71717a;
+  --accent: #6b7bd0;
+  --accent-hover: #818fd8;
+  --accent2: #86efac;
+  --danger: #ef4444;
+  --danger-hover: rgba(239, 68, 68, 0.15);
+  --warn: #d19a66;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+::selection { background: rgba(107, 123, 208, 0.3); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== TOP BAR ===== */
+#topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+.logo-badge {
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 1px;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 4px 8px;
+  cursor: default;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.2);
+}
+#toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: visible;
+  flex: 1;
+  min-width: 0;
+}
+.toolgrp {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 6px;
+  border-left: 1px solid var(--border);
+}
+.toolgrp:first-child { border-left: none; padding-left: 0; }
+.tool {
+  position: relative;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  transition: background .12s, border-color .12s;
+}
+.tool:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
+.tool.dead { opacity: .5; }
+.tool.active { background: var(--item-selected); border-color: var(--accent); color: #fff; }
+.tool.primary { background: var(--accent); border-color: transparent; color: #fff; }
+.tool.primary:hover { background: var(--accent-hover); }
+.tool svg { width: 20px; height: 20px; display: block; color: var(--accent); }
+.tool.active svg, .tool.primary svg { color: #fff; }
+
+/* Texture mode: the whole vertex-editing part of the toolbar steps aside.
+   Only Select, settings and load/export stay — texturing is not geometry editing. */
+body.texmode .toolgrp.geo { display: none; }
+body.texmode .toolgrp.geo + .toolgrp { border-left: none; padding-left: 0; }
+body.texmode #hud { display: none; }
+.tsel {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 3px 2px;
+  font-size: 10px;
+  max-width: 74px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.codeletter {
+  max-width: 52px; flex-shrink: 0;
+  font-weight: 700;
+}
+.tsel.tnum { max-width: 48px; font-family: var(--font-mono); }
+/* creature category in the toolbar: a square button with the letter and an arrow, click - A/B/C list */
+.letsel { position: relative; display: inline-flex; }
+.letbtn {
+  width: 38px; height: 38px; padding: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--accent); font-family: inherit; font-size: 15px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+}
+.letbtn:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
+.letbtn.open { border-color: var(--accent); }
+.letbtn .caret {
+  width: 0; height: 0; margin-top: 4px;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid currentColor; opacity: .8;
+}
+.letmenu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  display: flex; flex-direction: column; gap: 2px; padding: 4px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.45);
+}
+.letmenu[hidden] { display: none; }
+.letopt {
+  width: 30px; height: 30px; padding: 0;
+  background: transparent; border: 1px solid transparent; border-radius: 6px;
+  color: var(--text); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.letopt:hover { background: var(--item-hover); border-color: var(--border); }
+.letopt.on { color: var(--accent); border-color: var(--accent); }
+/* stepper buttons for the creature code number */
+.spinbtns { display: inline-flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.spinbtn {
+  width: 20px; height: 13px; line-height: 1; padding: 0;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); font-size: 8px; cursor: pointer;
+}
+.spinbtn:hover { border-color: var(--accent); color: var(--text); background: var(--item-hover); }
+.spinbtn:active { background: var(--item-active); }
+#thingNum.bad { border-color: var(--danger); color: var(--danger); }
+.tool:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+
+.main { display: flex; flex: 1; min-height: 0; }
+
+/* ===== LEFT PANEL ===== */
+#sidebar {
+  width: 300px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+/* two departments: geometry editing / geometry texturing */
+.tabs {
+  display: flex; gap: 4px; padding: 8px;
+  position: sticky; top: 0; z-index: 3;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 1; background: var(--panel2); border: 1px solid var(--border); color: var(--muted);
+  padding: 7px 6px; border-radius: 6px; cursor: pointer; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.04em; text-align: center;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.tab:hover { background: var(--item-hover); border-color: rgba(255,255,255,0.2); color: var(--text); }
+.tab.active { background: var(--item-selected); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.panel[hidden] { display: none; }
+.section { padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); }
+.section h3 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--dim); margin-bottom: 10px; font-weight: 600;
+}
+.row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.row label { font-size: 12px; color: var(--muted); width: 80px; flex-shrink: 0; }
+input[type=text], input[type=number], select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 8px; border-radius: 6px; font-size: 12px; width: 100%;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(107, 123, 208, 0.2), inset 0 1px 2px rgba(0,0,0,0.1); }
+.btn {
+  background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; width: 100%;
+  transition: all .15s; box-shadow: var(--shadow-sm);
+}
+.btn:hover { background: var(--item-hover); border-color: rgba(255,255,255,0.2); }
+.btn:active { background: var(--item-active); }
+.btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.danger { border-color: var(--danger); color: var(--danger); }
+.btn.danger:hover { background: var(--danger-hover); color: var(--danger); }
+.muted { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* Stone toggle */
+.sw { display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px; }
+.sw input { display: none; }
+.swsl {
+  width: 38px; height: 20px; background: var(--panel2); border: 1px solid var(--border-subtle);
+  border-radius: 11px; position: relative; flex-shrink: 0; transition: background .15s;
+}
+.swsl::after {
+  content: '';
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--muted); transition: left .15s, background .15s;
+}
+.sw input:checked + .swsl { background: var(--accent); border-color: transparent; }
+.sw input:checked + .swsl::after { left: 20px; background: #fff; }
+.swlabel { font-size: 13px; font-weight: 600; display: flex; flex-direction: column; }
+.swlabel small { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+/* texture tools (mounted by js/Atlas/*.js) */
+#texTools { margin-top: 8px; }
+.textool { margin-top: 8px; }
+
+/* connection modes */
+.modes { display: flex; gap: 4px; margin-bottom: 8px; }
+.mode {
+  background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 4px; border-radius: 6px; cursor: pointer; font-size: 11px;
+  flex: 1; text-align: center; transition: border-color .12s;
+}
+.mode:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
+.mode.active { background: var(--item-selected); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+/* creature panel */
+.thingpanel {
+  border: 1px dashed var(--border); border-radius: 8px; padding: 8px;
+  margin-bottom: 8px; background: rgba(34,37,45,.5);
+}
+.thingpanel.on { border-style: solid; border-color: var(--accent); background: var(--panel2); }
+
+/* lift */
+.liftfloor {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; margin-bottom: 4px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 11px; cursor: pointer; background: var(--panel2);
+}
+.liftfloor.act { border-color: var(--accent); color: var(--accent); background: var(--item-selected); font-weight: 500; }
+.liftfloor .lfname {
+  width: 40px; padding: 1px 4px; margin: 0 2px;
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.liftfloor .lb {
+  background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 11px;
+}
+.liftfloor.act .lb { color: var(--danger); }
+.liftbtns { margin-top: 6px; }
+
+/* lift curve */
+.curvebox { position: relative; margin-bottom: 8px; }
+#curveCanvas {
+  width: 100%; height: 120px; background: var(--bg);
+  border: 1px solid var(--border-subtle); border-radius: 8px;
+}
+.c0 { position: absolute; top: 4px; left: 6px; font-size: 10px; color: var(--muted); }
+.c1 { position: absolute; top: 4px; right: 6px; font-size: 10px; color: var(--muted); }
+.cs { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--accent); }
+
+/* ===== VIEWPORT ===== */
+#viewport { position: relative; flex: 1; background: #0d0d11; min-width: 0; }
+#canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+#warnings {
+  position: absolute; top: 48px; left: 10px; z-index: 5;
+  max-width: calc(100% - 180px);
+  display: none; background: rgba(24, 24, 27, 0.85); border: 1px solid var(--danger);
+  padding: 6px 12px; font-size: 12px; color: var(--danger); white-space: pre-wrap;
+  border-radius: 8px; box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+}
+#warnings.show { display: block; }
+#warnings .ok { color: var(--accent2); }
+.wfix {
+  display: inline-block; margin-left: 6px; padding: 0 7px;
+  background: transparent; border: 1px solid var(--danger); border-radius: 5px;
+  color: var(--danger); font-size: 11px; cursor: pointer; line-height: 1.6;
+}
+.wfix:hover { background: var(--danger-hover); }
+#coord {
+  position: absolute; top: 10px; left: 10px; pointer-events: none;
+  background: rgba(13,13,17,0.6); border: 1px solid var(--border-subtle); border-radius: 6px;
+  padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; color: var(--text);
+  backdrop-filter: blur(6px);
+}
+#coord span { color: var(--accent); }
+#hud {
+  position: absolute; bottom: 10px; left: 10px; font-size: 11px; color: var(--muted);
+  background: rgba(13,13,17,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-subtle);
+  pointer-events: none; font-family: var(--font-mono); backdrop-filter: blur(6px);
+}
+.vbtns { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
+.tb {
+  background: rgba(24,24,27,0.75); border: 1px solid var(--border-subtle); color: var(--text);
+  padding: 6px 10px; border-radius: 7px; cursor: pointer; font-size: 12px; backdrop-filter: blur(6px); transition: all 0.12s;
+}
+.tb:hover { border-color: rgba(255,255,255,0.2); background: var(--item-hover); }
+#toast {
+  position: fixed; bottom: 14px; right: 14px;
+  background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 14px; border-radius: 8px; font-size: 12px;
+  opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 100; box-shadow: var(--shadow-md);
+}
+#toast.show { opacity: 1; }
+#settingsPop {
+  position: fixed; z-index: 210; top: 54px; right: 14px;
+  background: rgba(24, 24, 27, 0.95); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 14px; min-width: 260px; max-width: 320px;
+  max-height: calc(100vh - 74px); overflow-y: auto;
+  box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+}
+#settingsPop[hidden] { display: none; }
+#settingsPop .sp-title { color: var(--accent); font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+#settingsPop .sp-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+#settingsPop .sp-row label { font-size: 12px; }
+#settingsPop select, #settingsPop input {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 4px 8px; border-radius: 6px; font-size: 12px;
+}
+#settingsPop .muted { font-size: 11px; }
+#settingsPop .btn { padding: 5px 12px; font-size: 12px; }
+#kbRows { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+#settingsPop .kbbind { min-width: 108px; font-family: var(--font-mono); font-size: 11px; }
+#settingsPop .kbbind.listening { border-color: var(--accent); color: var(--accent); animation: kbPulse 1s infinite alternate; }
+@keyframes kbPulse { from { opacity: 1; } to { opacity: .55; } }
+#buildLabel {
+  position: fixed; right: 8px; bottom: 6px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--dim);
+  pointer-events: none; user-select: none;
+  z-index: 90;
+}
+.loglist {
+  background: var(--bg); border: 1px solid var(--border-subtle); border-radius: 8px;
+  padding: 6px 8px; font-family: var(--font-mono); font-size: 11px;
+  max-height: 180px; overflow-y: auto; color: var(--text); white-space: pre-wrap;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.1);
+}
+.loglist .logrow { padding: 1px 0; border-bottom: 1px solid var(--border-subtle); color: var(--muted); }
+.loglist .muted { padding: 2px 0; }
+#ctm {
+  position: fixed; z-index: 200; display: none;
+  background: rgba(24, 24, 27, 0.85); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; min-width: 240px; max-width: 320px;
+  box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+}
+#ctm .ctmtitle { color: var(--accent); font-weight: 600; font-size: 13px; margin-bottom: 8px; }
+#ctm .ctmbody { display: flex; flex-direction: column; gap: 6px; }
+#ctm .ctmbody .ctmbox { display: flex; flex-direction: column; gap: 6px; }
+#ctm .ctmbtns { display: flex; gap: 6px; margin-top: 10px; }
+#ctm .ctmbtns .btn { flex: 1; padding: 5px 6px; font-size: 12px; text-align: center; }
+#ctm .row label { font-size: 11px; }
+#ctm .curvebox { position: relative; background: var(--bg); border: 1px solid var(--border-subtle); border-radius: 6px; }
+
+/* partial styling of info-data: scrollbars */
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 4px solid transparent;
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.25); }
+
+/* ===== RTL (Arabic) ===== */
+html[dir="rtl"] #coord,
+html[dir="rtl"] #buildLabel,
+html[dir="rtl"] #hud,
+html[dir="rtl"] .loglist,
+html[dir="rtl"] .tnum,
+html[dir="rtl"] input[type="number"] { direction: ltr; text-align: left; }
+html[dir="rtl"] #warnings { text-align: right; }
+
+/* ===== Textures: canvas region selector, layer stack, world list ===== */
+#panelTextures .section[hidden] { display: none; }
+
+.texatlas {
+  position: relative; display: block; width: 100%; height: 240px;
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--panel2); cursor: crosshair; user-select: none;
+  touch-action: none;
+}
+.texatlas.panning { cursor: grabbing; }
+.texatlasin {
+  position: absolute; left: 0; top: 0; width: 100%;
+  transform-origin: 0 0;
+}
+.texatlasin img {
+  display: block; width: 100%; height: auto; pointer-events: none;
+  image-rendering: auto;
+}
+.texatlasin img.pixelated { image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; }
+/* the rectangle sits OUTSIDE the transformed canvas layer: whole pixels, hard edges */
+.texrect {
+  position: absolute; box-sizing: border-box;
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.75);
+  background: rgba(76,125,217,0.12);
+  pointer-events: none;
+}
+.texhandles { position: absolute; inset: 0; pointer-events: none; }
+.texhandles i {
+  position: absolute; width: 9px; height: 9px;
+  transform: translate(-50%, -50%);
+  background: #ffffff; border: 1px solid #000000; border-radius: 2px;
+  pointer-events: auto; cursor: move;
+}
+.texhandles i[data-d="n"], .texhandles i[data-d="s"] { cursor: ns-resize; }
+.texhandles i[data-d="e"], .texhandles i[data-d="w"] { cursor: ew-resize; }
+.texhandles i[data-d="nw"], .texhandles i[data-d="se"] { cursor: nwse-resize; }
+.texhandles i[data-d="ne"], .texhandles i[data-d="sw"] { cursor: nesw-resize; }
+.texviewbar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.texviewbar .btn { width: auto; flex: 0 0 auto; padding: 4px 9px; font-size: 11px; }
+#texViewZoom { margin-left: auto; color: var(--dim); font-size: 11px; }
+#texRegionSize { margin-top: 3px; color: var(--dim); }
+
+/* ===== Alt-Tab: the canvas takes the main window, a still map picture stays in the sidebar ===== */
+#texSwapBox {
+  position: absolute; inset: 0; z-index: 5;
+  background: #0d0d11; padding: 10px; box-sizing: border-box;
+  display: flex; flex-direction: column; min-height: 0;
+}
+/* the id rule above beats the browser's [hidden] rule — say it again, or the empty
+   box sits on the map for good and eats every click without an error */
+#texSwapBox[hidden] { display: none; }
+#texSwapBox #texCanvasBlock {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  border: none; padding: 0; background: transparent; overflow: visible;
+}
+#texSwapBox #texCanvasBlock .texatlas { flex: 1; height: auto; min-height: 120px; }
+#texSwapBox #texCanvasBlock .texregionhint { max-width: 760px; }
+#texMapSnapImg {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #0d0d11; cursor: pointer;
+}
+/* the panel only holds a PICTURE of the canvas — clicking it opens the real thing on the right */
+#texAtlasSnapImg {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #0d0d11; cursor: pointer;
+  image-rendering: pixelated;
+}
+/* in the main window the canvas is just work space: no heading, no buttons, no paragraphs */
+#texSwapBox #texCanvasBlock h3,
+#texSwapBox #texCanvasBlock .texviewbar,
+#texSwapBox #texCanvasBlock > .muted { display: none; }
+
+.texbtns { display: flex; gap: 6px; margin-top: 8px; }
+.texbtns .btn { width: auto; flex: 1; text-align: center; padding: 6px 4px; font-size: 11px; }
+.texbtns .btn.off { opacity: 0.4; cursor: default; }
+.texbtns .btn.off:hover { background: var(--panel2); border-color: var(--border); }
+.btn.texnew { margin-top: 8px; }
+
+.texlayers { display: flex; flex-direction: column; gap: 4px; }
+.texlayer {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 7px; cursor: pointer;
+  font-size: 12px; color: var(--text);
+  transition: border-color .12s, background .12s;
+}
+.texlayer:hover { background: var(--item-hover); border-color: rgba(255,255,255,0.2); }
+.texlayer.active { border-color: var(--accent); background: var(--item-selected); }
+/* the layer row carries a small copy of the sprite that lives on it (image-editor style) */
+#texLayers .texlayersw { width: 26px; height: 26px; image-rendering: pixelated; }
+.texlayvis {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 13px; line-height: 1; padding: 0 2px;
+}
+.texlayvis:hover { color: var(--text); }
+.texlayersw {
+  width: 18px; height: 18px; border-radius: 4px; flex: 0 0 auto;
+  border: 1px solid var(--border);
+}
+.texlayname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.texlaycount { color: var(--dim); font-size: 11px; }
+.texlaydel {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 12px; line-height: 1; padding: 0 2px;
+}
+.texlaydel:hover { color: var(--danger); }
+/* raise / lower the layer one step; the edge rows carry a dead arrow */
+.texlaymove {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 11px; line-height: 1; padding: 0 1px;
+}
+.texlaymove:hover:not(:disabled) { color: var(--text); }
+.texlaymove:disabled { opacity: .3; cursor: default; }
+
+.texopt {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--text); padding: 4px 0; cursor: pointer;
+}
+.texopt input { accent-color: var(--accent); width: 13px; height: 13px; }
